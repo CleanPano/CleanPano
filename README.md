@@ -13,6 +13,8 @@
   <a href="https://github.com/CleanPano/CleanPano/releases/latest/download/CleanPano-Setup.exe"><b>⬇ Download CleanPano-Setup.exe</b></a>
   &nbsp;·&nbsp;
   <a href="https://github.com/CleanPano/CleanPano/releases">All versions</a>
+  &nbsp;·&nbsp;
+  <a href="https://x.com/CleanPano">Follow on X</a>
 </p>
 
 <p align="center">
@@ -65,6 +67,8 @@ To remove: Windows Settings > Apps > CleanPano > Uninstall.
 Found a problem or have an idea? Use **Report a bug or suggestion** in the app footer.
 
 CleanPano is free. If it helped you, **Support the project** in the app shows a Bitcoin address for optional donations.
+
+News and updates: [@CleanPano on X](https://x.com/CleanPano).
 
 ---
 

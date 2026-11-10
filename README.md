@@ -17,6 +17,8 @@
   <a href="https://x.com/CleanPano">Follow on X</a>
 </p>
 
+https://github.com/user-attachments/assets/aef2b0a6-ce59-44b8-8c04-bde85c22d87f
+
 <p align="center">
   <img src="images/home-light.png" width="49%" alt="CleanPano home screen, light theme">
   <img src="images/home-dark.png" width="49%" alt="CleanPano home screen, dark theme">

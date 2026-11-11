@@ -58,7 +58,7 @@ There is also:
 
 1. Download **CleanPano-Setup.exe** from the link above.
 2. Open the file.
-3. If the blue screen "Windows protected your PC" appears, click **More info** and then **Run anyway**. The warning appears because the program is new and does not have a digital signature yet.
+3. Windows may show a blue **"Windows protected your PC"** notice. It appears for every new app that is not in the Microsoft Store yet, and it is not a virus alert. Click **More info** and then **Run anyway**. CleanPano is free, with no ads and no telemetry.
 4. Click **Yes** when Windows asks for administrator permission.
 5. Choose your language and follow the screens until **Finish**.
 
@@ -79,7 +79,7 @@ News and updates: [@CleanPano on X](https://x.com/CleanPano).
 **Limpieza y optimización de PC para Windows, gratis y en un clic.** Para Windows 10 y 11 (64 bits).
 
 1. Descarga **CleanPano-Setup.exe** con el enlace de arriba y ábrelo.
-2. Si aparece la pantalla azul "Windows protegió su PC", haz clic en **Más información** y luego en **Ejecutar de todas formas**. El aviso aparece porque el programa es nuevo y todavía no tiene firma digital.
+2. Windows puede mostrar el aviso azul "Windows protegió su PC". Aparece con toda app nueva que aún no está en Microsoft Store y no es una alerta de virus. Haz clic en **Más información** y luego en **Ejecutar de todas formas**. CleanPano es gratis, sin anuncios y sin telemetría.
 3. Acepta el permiso de administrador, elige el idioma y sigue las pantallas.
 
 Después, abre CleanPano y haz clic en **Optimizar ahora**. Para errores o ideas, usa **Reportar error o sugerencia** en el pie de la app.
@@ -91,7 +91,7 @@ Después, abre CleanPano y haz clic en **Optimizar ahora**. Para errores o ideas
 **Limpeza e otimização de PC para Windows, grátis e em um clique.** Para Windows 10 e 11 (64 bits).
 
 1. Baixe o **CleanPano-Setup.exe** pelo link no topo e abra o arquivo.
-2. Se aparecer a tela azul "O Windows protegeu o computador", clique em **Mais informações** e depois em **Executar assim mesmo**. O aviso aparece porque o programa é novo e ainda não tem assinatura digital.
+2. O Windows pode mostrar o aviso azul "O Windows protegeu o computador". Ele aparece para todo app novo que ainda não está na Microsoft Store e não é alerta de vírus. Clique em **Mais informações** e depois em **Executar assim mesmo**. O CleanPano é gratuito, sem anúncios e sem telemetria.
 3. Aceite a permissão de administrador, escolha o idioma e siga as telas.
 
 Depois, abra o CleanPano e clique em **Otimizar agora**. Para bugs ou ideias, use **Reportar bug ou sugestão** no rodapé do app.

@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>CleanPano</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="icon" href="img/favicon.ico?v=1500">
+<link rel="icon" type="image/png" sizes="256x256" href="img/logo.png?v=1500">
+<script>try{if(localStorage.getItem('cp_theme')==='dark')document.documentElement.classList.add('dark')}catch(e){}</script>
+<link rel="stylesheet" href="css/base.css">
+<link rel="stylesheet" href="css/app.css">
+</head>
+<body>
+<canvas id="fx"></canvas>
+<div class="app" id="app"><div class="wrap">
+  <div class="top">
+    <div class="brand"><div class="logo"><img class="kat" src="img/cat.svg" alt=""></div><div>CleanPano<small data-t="tagline"></small></div></div>
+    <nav class="tabs" id="tabs"></nav>
+    <div class="right">
+      <div class="lang" id="lang">
+        <button class="lbtn" id="lbtn"><span class="flag" id="lflag"></span><b id="lcode">PT</b><svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg></button>
+        <div class="lmenu" id="lmenu"></div>
+      </div>
+      <div class="user"><div class="av" id="av">PC</div><div><b id="pcn">—</b><span id="pcos">Windows</span></div></div>
+      <button class="don-top" id="donTop" data-tt="don_btn"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 21s-7.5-4.6-10-9.3C.4 8.3 2 4.500 5.700 4.500c2 0 3.400 1.100 4.300 2.400l2 2.600 2-2.600c.9-1.300 2.300-2.400 4.300-2.400 3.700 0 5.300 3.800 3.700 7.200C19.500 16.400 12 21 12 21z"/></svg><span data-t="don_short"></span></button>
+      <button class="thm" id="thm" data-tt="theme"><svg class="moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg><svg class="sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg></button>
+      <label class="opq" id="opq"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="8"/><path d="M12 4a8 8 0 0 1 0 16z" fill="currentColor" stroke="none"/></svg><input type="range" id="winOp" min="50" max="100" step="1"></label>
+      <div class="wc" id="wc">
+        <button data-w="min" data-tt="wc_min"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 12h12"/></svg></button>
+        <button data-w="max" data-tt="wc_max" id="wcMax"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><rect x="6" y="6" width="12" height="12" rx="2"/></svg></button>
+        <button data-w="close" data-tt="wc_close" class="x"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M7 7l10 10M17 7L7 17"/></svg></button>
+      </div>
+    </div>
+  </div>
+  <div class="crumb"><span id="crumb"></span><span class="badge" id="badge"><i></i><b id="btxt"></b></span></div>
+  <div class="head">
+    <div><h1 id="title">CleanPano</h1><div class="sub" id="sub"></div></div>
+    <div class="acts">
+      <button class="btn green" data-fx="#3DDC6B" data-task id="hMain"></button>
+      <button class="btn ghost round" data-fx="#111412" id="hRef" data-tt="refresh" data-i="refresh"></button>
+    </div>
+  </div>
+  <div class="grid">
+    <div>
+      <div class="card hero" id="hero">
+        <div class="hl">
+          <div class="mascot" id="mascot"><canvas id="orb" width="460" height="460"></canvas><img class="m-head" id="mHead" src="img/cat.svg" alt=""><div class="m-clean"><svg class="claw c1" viewBox="0 0 280 205" aria-hidden="true"><path class="cw-d" d="M236 51.5Q188.5 126.1 139.3 199.7Q206.9 138.2 236 51.5Z"/><path class="cw-g" d="M236 51.5Q192.7 128.9 139.3 199.7Q202.8 135.4 236 51.5Z"/><path class="cw-w" d="M236 51.5Q195.8 130.9 139.3 199.7Q199.6 133.4 236 51.5Z"/><path class="cw-d" d="M224.6 14.2Q160.9 108.1 100.6 204.2Q184.3 123.4 224.6 14.2Z"/><path class="cw-g" d="M224.6 14.2Q165.1 110.8 100.6 204.2Q180.1 120.7 224.6 14.2Z"/><path class="cw-w" d="M224.6 14.2Q169.7 113.9 100.6 204.2Q175.5 117.6 224.6 14.2Z"/><path class="cw-d" d="M197 1.6Q136.2 92 77.9 184Q158.8 106.7 197 1.6Z"/><path class="cw-g" d="M197 1.6Q140.4 94.7 77.9 184Q154.6 104 197 1.6Z"/><path class="cw-w" d="M197 1.6Q144.8 97.6 77.9 184Q150.2 101.1 197 1.6Z"/><path class="cw-d" d="M157 8Q113.6 77.2 67.7 144.8Q131.2 88.7 157 8Z"/><path class="cw-g" d="M157 8Q117.8 80 67.7 144.8Q127 86 157 8Z"/><path class="cw-w" d="M157 8Q120.6 81.8 67.7 144.8Q124.1 84.1 157 8Z"/></svg><svg class="claw c2" viewBox="0 0 280 205" aria-hidden="true"><path class="cw-d" d="M121.4 4Q151.3 90.8 219.6 152.2Q169.7 78.7 121.4 4Z"/><path class="cw-g" d="M121.4 4Q155.5 88.1 219.6 152.2Q165.5 81.4 121.4 4Z"/><path class="cw-w" d="M121.4 4Q158.6 86 219.6 152.2Q162.4 83.5 121.4 4Z"/><path class="cw-d" d="M82.5 -0.3Q123.8 109.1 208.5 189.7Q147.2 93.6 82.5 -0.3Z"/><path class="cw-g" d="M82.5 -0.3Q128 106.3 208.5 189.7Q143 96.4 82.5 -0.3Z"/><path class="cw-w" d="M82.5 -0.3Q132.6 103.2 208.5 189.7Q138.4 99.5 82.5 -0.3Z"/><path class="cw-d" d="M60 20.1Q99.2 125.4 181 202.5Q121.7 110.5 60 20.1Z"/><path class="cw-g" d="M60 20.1Q103.4 122.6 181 202.5Q117.6 113.2 60 20.1Z"/><path class="cw-w" d="M60 20.1Q107.8 119.7 181 202.5Q113.2 116.1 60 20.1Z"/><path class="cw-d" d="M50.1 59.5Q76.7 140.3 140.9 196.3Q94.2 128.7 50.1 59.5Z"/><path class="cw-g" d="M50.1 59.5Q80.9 137.5 140.9 196.3Q90.1 131.5 50.1 59.5Z"/><path class="cw-w" d="M50.1 59.5Q83.8 135.7 140.9 196.3Q87.2 133.3 50.1 59.5Z"/></svg><svg class="claw c3" viewBox="0 0 280 205" aria-hidden="true"><path class="cw-d" d="M49.1 44.5Q148.5 82.5 249.2 116.7Q156.6 59.9 49.1 44.5Z"/><path class="cw-g" d="M49.1 44.5Q150.2 77.8 249.2 116.7Q154.9 64.6 49.1 44.5Z"/><path class="cw-w" d="M49.1 44.5Q151.7 73.7 249.2 116.7Q153.5 68.7 49.1 44.5Z"/><path class="cw-d" d="M18 62Q138.5 110.2 262 150Q148.3 83 18 62Z"/><path class="cw-g" d="M18 62Q140.2 105.5 262 150Q146.6 87.7 18 62Z"/><path class="cw-w" d="M18 62Q142.2 100 262 150Q144.6 93.2 18 62Z"/><path class="cw-d" d="M33.2 96.2Q130.3 132.8 228.4 166.6Q138.1 111.2 33.2 96.2Z"/><path class="cw-g" d="M33.2 96.2Q132 128.1 228.4 166.6Q136.4 115.9 33.2 96.2Z"/><path class="cw-w" d="M33.2 96.2Q133.4 124.3 228.4 166.6Q135.1 119.7 33.2 96.2Z"/></svg><div class="shards"><b></b><b></b><b></b><b></b><b></b><b></b><b></b><b></b><b></b><b></b></div></div></div>
+          <div class="hs" id="hState"></div>
+          <div class="hn" id="hNote"></div>
+          <button class="btn green xl" data-fx="#3DDC6B" data-task id="bigGo" data-i="zap"> </button>
+          <div class="prog"><i id="pBar"></i></div>
+          <div class="pmeta" id="pTxt"></div>
+        </div>
+        <div class="hr">
+          <div class="ch"><h3 data-t="what_button"></h3><span class="meta" id="stMeta"></span></div>
+          <div id="steps"></div>
+          <div class="optrow auto"><span><b data-t="autostart"></b><small data-t="autostart_d"></small></span><button class="sw" id="swAuto"></button></div>
+        </div>
+      </div>
+      <div id="content"></div>
+    </div>
+    <div class="rc">
+      <div class="card">
+        <div class="ch" style="margin-bottom:0"><h3><span style="color:var(--green-d);display:flex" data-i="sparkles"></span><span data-t="health"></span></h3></div>
+        <div class="score">
+          <div class="ring"><svg viewBox="0 0 120 120"><circle cx="60" cy="60" r="52" class="rt"/><circle cx="60" cy="60" r="52" class="rv" id="ringV"/></svg><span class="sn" id="sn">—</span></div>
+          <div class="sc"><span class="so" data-t="of100"></span><span class="chip" id="chip"></span></div>
+        </div>
+        <div class="sect" data-t="builds"></div>
+        <div id="facs"></div>
+        <div class="changed"><div class="t"><b data-i="sparkles" data-t="changed"> </b><span id="upd"></span></div><p id="chg"></p></div>
+        <button class="btn dark" data-fx="#F5C542" data-task id="optim" data-i="zap" data-t="opt_now"> </button>
+      </div>
+      <div class="card" id="actCard">
+        <div class="ch"><h3><span data-t="activity"></span> <span class="cnt" id="lcnt">0</span></h3><div style="display:flex;gap:16px"><button class="link" id="bLogs" data-t="logs_folder"></button><button class="link" id="lclr" data-t="clear"></button></div></div>
+        <div class="log" id="log"></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span><b>CleanPano</b> <span id="ver"></span></span><span id="footR"><button class="don-b fb-b" id="fbBtn" style="display:none"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg><span data-t="fb_btn"></span></button><button class="don-b" id="donBtn"><svg viewBox="0 0 24 24" width="12" height="12" fill="currentColor"><path d="M12 21s-7.5-4.6-10-9.3C.4 8.300 2 4.500 5.700 4.500c2 0 3.400 1.100 4.300 2.400l2 2.600 2-2.600c.9-1.300 2.300-2.400 4.300-2.400 3.700 0 5.300 3.800 3.700 7.200C19.500 16.400 12 21 12 21z"/></svg><span data-t="don_btn"></span></button></span></div>
+</div></div>
+
+<div class="mini" id="mini"><img src="img/cat-work.webp" alt=""><div><b id="miniT"></b><span id="miniS"></span></div></div>
+<div class="mask" id="m1"><div class="dlg"><h4 id="mT"></h4><p id="mP"></p><div class="row"><button class="btn ghost" data-fx="#111412" id="mNo"></button><button class="btn green" data-fx="#3DDC6B" id="mYes"></button></div></div></div>
+<div class="mask" id="m4"><div class="dlg don fb"><h4 data-t="fb_title"></h4><p data-t="fb_msg"></p>
+<div class="fbtype"><button class="on" data-k="bug" data-t="fb_bug"></button><button data-k="idea" data-t="fb_idea"></button></div>
+<textarea id="fbText" maxlength="3000" rows="6"></textarea>
+<input id="fbMail" type="email" maxlength="120" autocomplete="off">
+<div class="fbnote" id="fbNote"></div>
+<div class="row"><button class="btn ghost" data-fx="#111412" id="fbX" data-t="cancel"></button><button class="btn green" data-fx="#3DDC6B" id="fbSend"></button></div></div></div>
+<div class="mask" id="m3"><div class="dlg don"><h4 data-t="don_title"></h4><p data-t="don_msg"></p>
+<div class="donbox"><img src="img/btc-qr.svg" alt="QR"><div class="doninfo"><span class="dontag">Bitcoin (BTC) · Native SegWit</span><code id="donAddr">bc1qnkpm79xsymwn0w6gyq7hthrhd247r9pcysqs2w</code><button class="btn green" data-fx="#3DDC6B" id="donCopy"></button></div></div>
+<div class="donwarn"><b data-t="don_warn_t"></b><span data-t="don_warn"></span></div>
+<div class="row"><button class="btn ghost" data-fx="#111412" id="donX" data-t="don_close"></button></div></div></div>
+<div class="mask" id="m2"><div class="dlg tbl"><div class="ch"><h3 id="tT"></h3><div style="display:flex;gap:10px"><input id="tQ"><button class="btn ghost round" data-fx="#111412" id="tX" data-i="x"></button></div></div><div class="tw"><table id="tb"></table></div></div></div>
+
+<script>
+/* configuração da base (PANO SHELL) */
+/* feedbackKey: chave do Web3Forms (web3forms.com). Ela funciona como apelido do e-mail que recebe os relatos; o endereço não fica no app. Vazia = botão escondido. O build oficial preenche a chave a partir de build/feedback.key (arquivo fora do repositório). */
+window.APP={id:'cp',name:'CleanPano',baseW:1440,baseH:900,solid:['.brand .logo','#mascot','#bigGo'],feedbackKey:''};
+</script>
+<script src="js/lang.js"></script>
+<script src="js/i18n.js"></script>
+<script src="js/shell.js"></script>
+<script src="js/app.js"></script>
+<script type="module" src="js/fx.js"></script>
+</body>
+</html>

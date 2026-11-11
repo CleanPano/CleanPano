@@ -22,7 +22,7 @@ CleanPano keeps these files on your computer only. They are never uploaded.
 - **Settings** (language, theme, options, startup programs you chose to keep).
 - **Activity log**: a plain-text record of what the app did, in `C:\ProgramData\CleanPano\logs`. You can open it from the Activity panel and delete it at any time.
 
-Uninstalling CleanPano removes the app and its interface settings. Two things are left so that a reinstall keeps your choices: the log folder above and the list of startup programs you chose to keep (registry key `HKLM\SOFTWARE\CleanPano`). You can delete both by hand.
+Uninstalling CleanPano removes the app, its settings and the log folder. One thing is left so that a reinstall keeps your choices: the list of startup programs you chose to keep (registry key `HKLM\SOFTWARE\CleanPano`). You can delete it by hand.
 
 ## Internet connections the app makes
 

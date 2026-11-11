@@ -1,0 +1,62 @@
+CleanPano 1.15.1 - PC Cleaner
+Copyright (C) 2026 CleanPano
+
+Software livre sob a GNU General Public License v3.0 (GPLv3) / Free software under the GNU General Public License v3.0 (GPLv3).
+Código-fonte e licença completa / Source code and full license: https://github.com/CleanPano/CleanPano
+
+Este software usa componentes de terceiros / This software uses third-party components:
+
+three.js r170 - MIT License - Copyright 2010-2024 Three.js Authors - https://threejs.org
+Inter typeface - SIL Open Font License 1.1 - Copyright 2020 The Inter Project Authors - https://rsms.me/inter
+7-Zip (7zr.exe, baixado sob demanda para extrair drivers NVIDIA / downloaded on demand) - GNU LGPL - Igor Pavlov - https://www.7-zip.org
+
+SEM GARANTIA: o CleanPano apaga arquivos temporários e instala atualizações. Use por sua conta e risco.
+Drivers: baixados do Microsoft Update Catalog (catalog.update.microsoft.com), publicados pelos fabricantes / downloaded from the Microsoft Update Catalog, published by the manufacturers.
+
+NO WARRANTY: CleanPano deletes temporary files and installs updates. Use at your own risk.
+The MIT License
+
+Copyright © 2010-2024 three.js authors
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+THE SOFTWARE.
+
+
+------------------------------------------------------------------------
+Microsoft Edge WebView2 SDK (Microsoft.Web.WebView2.Core.dll,
+Microsoft.Web.WebView2.WinForms.dll, WebView2Loader.dll)
+Copyright (C) Microsoft Corporation. All rights reserved.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are met:
+ * Redistributions of source code must retain the above copyright notice,
+   this list of conditions and the following disclaimer.
+ * Redistributions in binary form must reproduce the above copyright notice,
+   this list of conditions and the following disclaimer in the documentation
+   and/or other materials provided with the distribution.
+ * The name of Microsoft Corporation, or the names of its contributors may
+   not be used to endorse or promote any products derived from this software
+   without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+CONSEQUENTIAL DAMAGES ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
+EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.

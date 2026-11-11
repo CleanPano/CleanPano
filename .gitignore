@@ -1,0 +1,23 @@
+# build output
+dist/
+*.exe
+*.msi
+*.msix
+*.msixupload
+*.appx
+*.dll
+*.pdb
+# local-only files
+build/feedback.key
+*.orig
+*.bak
+*.tmp
+*.log
+# OS / editors
+Thumbs.db
+desktop.ini
+.DS_Store
+.vs/
+.vscode/
+*.user
+__pycache__/

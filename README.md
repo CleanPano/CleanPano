@@ -10,6 +10,10 @@
 </p>
 
 <p align="center">
+  <a href="LICENSE"><img src="https://img.shields.io/badge/license-GPLv3-blue.svg" alt="License: GPL v3"></a>
+</p>
+
+<p align="center">
   <a href="https://github.com/CleanPano/CleanPano/releases/latest/download/CleanPano-Setup.exe"><b>⬇ Download CleanPano-Setup.exe</b></a>
   &nbsp;·&nbsp;
   <a href="https://github.com/CleanPano/CleanPano/releases">All versions</a>
@@ -64,13 +68,53 @@ There is also:
 
 To remove: Windows Settings > Apps > CleanPano > Uninstall.
 
+### Open source
+
+CleanPano is free software under the [GNU GPL v3](LICENSE). The whole program is in this repository: the engine (`app/CleanPano.ps1`), the interface (`app/ui/`), the window (`launcher/launcher.cs`) and the installer script (`build/installer.nsi`). No ads, no telemetry, no account, no paid version. Third-party components are listed in [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md).
+
+### Build from source
+
+The build produces `dist/CleanPano-Setup.exe`. The WebView2 SDK is downloaded from NuGet by the build script (fixed version, checked by SHA-256).
+
+**Linux (Debian/Ubuntu)**
+
+```bash
+sudo apt install mono-devel mono-mcs nsis curl unzip
+git clone https://github.com/CleanPano/CleanPano.git
+cd CleanPano
+bash build/build.sh
+```
+
+**Windows 10/11**
+
+Needs [NSIS 3](https://nsis.sourceforge.io) installed. The C# compiler used is the one that ships with Windows (.NET Framework 4.8).
+
+```powershell
+git clone https://github.com/CleanPano/CleanPano.git
+cd CleanPano
+powershell -ExecutionPolicy RemoteSigned -File build\build.ps1
+```
+
+To run the app you need Windows 10 or 11 (64-bit) with the Microsoft Edge WebView2 Runtime, which Windows 11 already includes.
+
+A build from source hides the **Report a bug or suggestion** button, because the key of the official form is not in the repository. Everything else is identical to the official release.
+
+### Contributing
+
+Bug reports, ideas and pull requests are welcome. See [CONTRIBUTING.md](CONTRIBUTING.md). For security problems, see [SECURITY.md](SECURITY.md).
+
 ### Feedback and support
 
-Found a problem or have an idea? Use **Report a bug or suggestion** in the app footer.
-
-CleanPano is free. If it helped you, **Support the project** in the app shows a Bitcoin address for optional donations.
+Found a problem or have an idea? Open an [issue](https://github.com/CleanPano/CleanPano/issues) or use **Report a bug or suggestion** in the app footer.
 
 News and updates: [@CleanPano on X](https://x.com/CleanPano).
+
+### Support the project
+
+CleanPano is free and stays free. Donations are optional:
+
+- **GitHub Sponsors:** use the **Sponsor** button at the top of this page.
+- **Bitcoin (BTC, Native SegWit):** `bc1qnkpm79xsymwn0w6gyq7hthrhd247r9pcysqs2w` (also shown in the app under **Support the project**). Send only Bitcoin to this address.
 
 ---
 
@@ -84,6 +128,8 @@ News and updates: [@CleanPano on X](https://x.com/CleanPano).
 
 Después, abre CleanPano y haz clic en **Optimizar ahora**. Para errores o ideas, usa **Reportar error o sugerencia** en el pie de la app.
 
+**Código abierto:** CleanPano es software libre bajo la licencia [GNU GPL v3](LICENSE). Para compilarlo o contribuir, consulta las secciones *Build from source* y *Contributing* de arriba.
+
 ---
 
 ## Português (Brasil)
@@ -95,3 +141,5 @@ Después, abre CleanPano y haz clic en **Optimizar ahora**. Para errores o ideas
 3. Aceite a permissão de administrador, escolha o idioma e siga as telas.
 
 Depois, abra o CleanPano e clique em **Otimizar agora**. Para bugs ou ideias, use **Reportar bug ou sugestão** no rodapé do app.
+
+**Código aberto:** o CleanPano é software livre sob a licença [GNU GPL v3](LICENSE). Para compilar ou contribuir, veja as seções *Build from source* e *Contributing* acima.

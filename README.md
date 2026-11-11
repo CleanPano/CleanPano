@@ -70,7 +70,7 @@ To remove: Windows Settings > Apps > CleanPano > Uninstall.
 
 ### Open source
 
-CleanPano is free software under the [GNU GPL v3](LICENSE). The whole program is in this repository: the engine (`app/CleanPano.ps1`), the interface (`app/ui/`), the window (`launcher/launcher.cs`) and the installer script (`build/installer.nsi`). No ads, no telemetry, no account, no paid version. Third-party components are listed in [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md).
+CleanPano is free software under the [GNU GPL v3](LICENSE). The whole program is in this repository: the engine (`app/CleanPano.ps1`), the interface (`app/ui/`), the window (`launcher/launcher.cs`) and the installer script (`build/installer.nsi`). No ads, no telemetry, no account, no paid version. See the [Privacy Policy](https://cleanpano.github.io/CleanPano/privacy-policy). Third-party components are listed in [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md).
 
 ### Build from source
 

@@ -5,11 +5,15 @@ if (-not $isAdmin) {
     Start-Process powershell.exe ("-NoProfile -ExecutionPolicy RemoteSigned -File `"$PSCommandPath`""+$(if ($Boot) { ' -Boot' } else { '' })) -Verb RunAs -WindowStyle Hidden
     exit
 }
-$DataDir = Join-Path $env:ProgramData 'CleanPano'
+# Edição Store (MSIX): o pacote traz um AppxManifest.xml ao lado do motor. Nela os dados ficam no AppData do app,
+# que o Windows apaga na desinstalação; na edição normal ficam em ProgramData.
+$IsStore = Test-Path (Join-Path $PSScriptRoot 'AppxManifest.xml')
+$DataDir = $(if ($IsStore) { Join-Path $env:LOCALAPPDATA 'CleanPano\data' } else { Join-Path $env:ProgramData 'CleanPano' })
 $LogDir = Join-Path $DataDir 'logs'
 New-Item -ItemType Directory -Path $LogDir -Force | Out-Null
 $sync = [hashtable]::Synchronized(@{
     DataDir = $DataDir
+    Store   = $IsStore
     Q       = New-Object 'System.Collections.Concurrent.ConcurrentQueue[string]'
     Result  = $null
     LogDir  = $LogDir
@@ -457,9 +461,15 @@ function Set-StartupItem($it, [bool]$on) {
 }
 # lista "manter": programas que o usuário desmarcou e que o botão nunca desativa.
 # Fica no registro (HKLM\SOFTWARE\CleanPano), fora da pasta do app, para valer mesmo depois de desinstalar e instalar de novo.
+# Na edição Store fica num arquivo junto dos dados do app (startup-keep.json), removido na desinstalação.
 $KeepKey = 'HKLM:\SOFTWARE\CleanPano'
-function Get-StartupKeep { try { @((Get-ItemProperty -Path $KeepKey -Name StartupKeep -ErrorAction Stop).StartupKeep | Where-Object { $_ }) } catch { @() } }
+$KeepFile = Join-Path $sync.DataDir 'startup-keep.json'
+function Get-StartupKeep {
+    if ($sync.Store) { try { return @(Get-Content $KeepFile -Raw -Encoding UTF8 -ErrorAction Stop | ConvertFrom-Json | Where-Object { $_ }) } catch { return @() } }
+    try { @((Get-ItemProperty -Path $KeepKey -Name StartupKeep -ErrorAction Stop).StartupKeep | Where-Object { $_ }) } catch { @() }
+}
 function Set-StartupKeep($ids) {
+    if ($sync.Store) { $ids = @($ids | Where-Object { $_ } | Select-Object -Unique); ConvertTo-Json -InputObject @([string[]]$ids) | Set-Content -Path $KeepFile -Encoding UTF8; return }
     if (-not (Test-Path $KeepKey)) { New-Item -Path $KeepKey -Force | Out-Null }
     $ids = @($ids | Where-Object { $_ } | Select-Object -Unique)
     if ($ids.Count) { New-ItemProperty -Path $KeepKey -Name StartupKeep -PropertyType MultiString -Value ([string[]]$ids) -Force | Out-Null }
@@ -689,7 +699,7 @@ $plan += , @('temp', 'Arquivos temporários')
 $plan += , @('logs', 'Logs e relatórios de erro')
 $plan += , @('browsers', 'Cache dos navegadores')
 $plan += , @('system', 'Caches do Windows e lixeira')
-$plan += , @('net', 'DNS automático e cache')
+if ($DoNet -ne $false) { $plan += , @('net', 'DNS automático e cache') }
 if ($DoGpu -or $DoDrivers) { $plan += , @('hw', 'Reconhecer hardware') }
 if ($DoGpu) { $plan += , @('gpu', 'Driver da placa de vídeo') }
 if ($DoDrivers) { $plan += , @('drivers', 'Atualizar drivers') }
@@ -890,10 +900,18 @@ function Get-Settings {
 function Save-Settings($c) { ConvertTo-Json -InputObject $c -Depth 5 | Set-Content -Path $SetFile -Encoding UTF8 }
 function OptB($o, $n, $d) { if ($o -and $null -ne $o.$n) { [bool]$o.$n } else { $d } }
 function Test-Boot { [bool](Get-ScheduledTask -TaskName 'CleanPano' -ErrorAction SilentlyContinue) }
+# Edição Store: atalho de execução do pacote e identificador para abrir a janela
+$StoreExe = Join-Path $env:LOCALAPPDATA 'Microsoft\WindowsApps\CleanPano.exe'
+function Get-BootTarget { if ($IsStore) { $StoreExe } else { Join-Path $PSScriptRoot 'CleanPano.exe' } }
 function Register-Boot {
     try {
         $me = "$env:USERDOMAIN\$env:USERNAME"
-        $act = New-ScheduledTaskAction -Execute ("`"" + (Join-Path $PSScriptRoot 'CleanPano.exe') + "`"") -Argument '/boot'
+        if ($IsStore) {
+            # Edição Store: usa o atalho estável do pacote (não muda entre versões). Se o app for desinstalado o atalho some e a tarefa se apaga sozinha.
+            $act = New-ScheduledTaskAction -Execute 'cmd.exe' -Argument ('/c if exist "{0}" ("{0}" /boot) else (schtasks /Delete /TN CleanPano /F)' -f $StoreExe)
+        } else {
+            $act = New-ScheduledTaskAction -Execute ("`"" + (Join-Path $PSScriptRoot 'CleanPano.exe') + "`"") -Argument '/boot'
+        }
         $trg = New-ScheduledTaskTrigger -AtLogOn -User $me
         $trg.Delay = 'PT1M'
         $pri = New-ScheduledTaskPrincipal -UserId $me -LogonType Interactive -RunLevel Highest
@@ -919,7 +937,7 @@ $script:LastFreed = ''
 $script:LastPoll = $null
 function Get-SavedOptVars {
     $o = (Get-Settings).opts
-    @{ DoRestore = (OptB $o 'restore' $true); DoGpu = (OptB $o 'gpu' $true); DoDrivers = (OptB $o 'drivers' $true); DoWinget = (OptB $o 'winget' $true); DoDism = (OptB $o 'dism' $true); CloseBrowsers = $true; UseWU = (OptB $o 'usewu' $false) }
+    @{ DoRestore = (OptB $o 'restore' $true); DoGpu = (OptB $o 'gpu' $true); DoDrivers = (OptB $o 'drivers' $true); DoWinget = (OptB $o 'winget' $true); DoDism = (OptB $o 'dism' $true); DoNet = (OptB $o 'net' $true); CloseBrowsers = $true; UseWU = (OptB $o 'usewu' $false) }
 }
 function Get-Status {
     $st = @(if ($sync.Steps) { $sync.Steps })
@@ -1067,6 +1085,18 @@ function Handle($ctx) {
     $req = $ctx.Request
     $q = $req.QueryString
     $ap = $req.Url.AbsolutePath
+    # Segurança: só a própria janela do CleanPano pode falar com o motor (que roda como administrador).
+    # - Host precisa ser 127.0.0.1:porta (bloqueia DNS rebinding)
+    # - chamadas /api/ exigem o cabeçalho X-CleanPano (sites não conseguem enviar sem a permissão CORS, que o motor nunca dá)
+    # - Origin, se vier, precisa ser a do próprio app
+    $okHost = ($req.UserHostName -eq "127.0.0.1:$Port")
+    $org = $req.Headers['Origin']
+    $okOrigin = (-not $org) -or ($org -eq "http://127.0.0.1:$Port")
+    $isApi = $ap.ToLower().StartsWith('/api/')
+    if (-not $okHost -or -not $okOrigin -or ($isApi -and $req.Headers['X-CleanPano'] -ne '1') -or $req.HttpMethod -eq 'OPTIONS') {
+        try { $ctx.Response.StatusCode = 403; $ctx.Response.Close() } catch {}
+        return
+    }
     if ($ap -match '^/([A-Za-z0-9_\-]+/)*[A-Za-z0-9_\-.]+\.(js|woff2|ico|png|svg|css|webp)$' -and $ap -notmatch '\.\.') {
         $f = Join-Path $UiDir ($ap.TrimStart('/') -replace '/', '\')
         if (Test-Path -LiteralPath $f -PathType Leaf) { Send-Bytes $ctx ([IO.File]::ReadAllBytes($f)) $Mime[$Matches[2]]; return }
@@ -1143,13 +1173,13 @@ try {
     $listener.Prefixes.Add("http://127.0.0.1:$Port/")
     $listener.Start()
     Log "CleanPano pronto (porta $Port)"
-    try { $tk = Get-ScheduledTask -TaskName 'CleanPano' -ErrorAction Stop; if ($tk.Actions[0].Execute -notlike "*$(Join-Path $PSScriptRoot 'CleanPano.exe')*") { Register-Boot } } catch {}
+    try { $tk = Get-ScheduledTask -TaskName 'CleanPano' -ErrorAction Stop; if (("$($tk.Actions[0].Execute) $($tk.Actions[0].Arguments)") -notlike "*$(Get-BootTarget)*") { Register-Boot } } catch {}
     if ($Boot) {
         $script:BootMode = $true
         $script:BootRun = $true
         Log 'Iniciado com o Windows: otimização automática (bandeja)'
         [void](Start-Work 'optimize' (Get-SavedOptVars))
-        Start-Process explorer.exe "`"$(Join-Path $PSScriptRoot 'CleanPano.exe')`""
+        Start-Process explorer.exe "`"$(Get-BootTarget)`""
     }
     $stop = $false
     while (-not $stop) {

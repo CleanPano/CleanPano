@@ -43,9 +43,10 @@ const fx=(m,...a)=>{try{window.FX&&window.FX[m](...a)}catch(e){}};
 const setText=(el,s)=>{if(!el)return;const n=[...el.childNodes].reverse().find(x=>x.nodeType===3);if(n)n.textContent=' '+s;else el.append(' '+s)};
 
 const S={autostart:false,busy:false,runAt:0,task:'',info:null,scan:null,scanAt:null,freed:0,startup:null,ping:null,speed:null,drivers:null,bad:null,wu:null,wuType:'Driver',page:'home',sel:{},first:null,score:null,
-  steps:null,optRunning:false,hw:store.get('hw',null),opts:(()=>{const o=Object.assign({restore:true,gpu:true,dism:true,drivers:true,winget:true,close:false,usewu:false},store.get('opts',{}));if(store.get('optsv',0)<3){o.winget=true;o.gpu=true;store.set('optsv',3);store.set('opts',o)}return o})(),last:store.get('last',null)};
+  steps:null,optRunning:false,hw:store.get('hw',null),opts:(()=>{const o=Object.assign({restore:true,gpu:true,dism:true,drivers:true,winget:true,net:true,close:false,usewu:false},store.get('opts',{}));if(store.get('optsv',0)<3){o.winget=true;o.gpu=true;store.set('optsv',3);store.set('opts',o)}return o})(),last:store.get('last',null)};
 
-async function api(p,b){const r=await fetch(p,b?{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(b)}:{cache:'no-store'});return r.json()}
+const HDR={'X-CleanPano':'1'};
+async function api(p,b){const r=await fetch(p,b?{method:'POST',headers:{'Content-Type':'application/json','X-CleanPano':'1'},body:JSON.stringify(b)}:{cache:'no-store',headers:HDR});return r.json()}
 const openW=w=>api('/api/open?w='+w);
 async function power(m){await api('/api/power?m='+m);loadInfo()}
 function markRun(el){document.querySelectorAll('.tile.run').forEach(x=>x.classList.remove('run'));if(el&&el.classList&&el.classList.contains('tile'))el.classList.add('run')}
@@ -80,7 +81,7 @@ function applyStatic(){
 }
 
 /* ================= plano do botão ================= */
-const PLAN=[['restore','restore'],['temp'],['logs'],['browsers'],['system'],['net'],['hw','@hw'],['gpu','gpu'],['drivers','drivers'],['winget','winget'],['dism','dism']];
+const PLAN=[['restore','restore'],['temp'],['logs'],['browsers'],['system'],['net','net'],['hw','@hw'],['gpu','gpu'],['drivers','drivers'],['winget','winget'],['dism','dism']];
 const optOn=o=>!o||(o==='@hw'?(S.opts.gpu||S.opts.drivers):S.opts[o]);
 const enabledPlan=()=>PLAN.filter(p=>optOn(p[1]));
 let syncT;const syncSettings=()=>{clearTimeout(syncT);syncT=setTimeout(()=>api('/api/settings',{opts:S.opts,lang:LANG}).catch(()=>{}),400)};
@@ -112,7 +113,7 @@ async function optimize(){
   if(S.busy)return;
   if(S.page!=='home')go('home');
   S.steps=null;renderSteps();S.optRunning=true;renderProgress();
-  const ok=await run('optimize',{DoRestore:!!S.opts.restore,DoDism:!!S.opts.dism,DoDrivers:!!S.opts.drivers,DoGpu:!!S.opts.gpu,DoWinget:!!S.opts.winget,CloseBrowsers:true,UseWU:!!S.opts.usewu},$('#bigGo'));
+  const ok=await run('optimize',{DoRestore:!!S.opts.restore,DoDism:!!S.opts.dism,DoDrivers:!!S.opts.drivers,DoGpu:!!S.opts.gpu,DoWinget:!!S.opts.winget,DoNet:S.opts.net!==false,CloseBrowsers:true,UseWU:!!S.opts.usewu},$('#bigGo'));
   if(!ok){S.optRunning=false;renderProgress()}
 }
 
@@ -249,7 +250,7 @@ function renderStartup(){
     return `<div class="sti${x.keep?' kept':''}"><label class="stx" title="${esc(t('st_tt'))}"><input type="checkbox" data-ix="${ix}" ${x.keep?'':'checked'}><span class="box">${svg('check')}</span></label><div style="min-width:0"><b>${esc(x.name)}</b><span>${esc(x.publisher||'')}</span></div><span class="sta">${x.enabled?'':`<button class="link" data-re="${ix}" data-task>${t('st_react')}</button>`}<i class="stc ${ch[1]}">${ch[0]}</i></span></div>`}).join(''):`<div class="empty">${t('st_empty')}</div>`;
   b.querySelectorAll('input[data-ix]').forEach(cb=>cb.onchange=async()=>{
     const x=it[+cb.dataset.ix],keep=!cb.checked;cb.disabled=true;
-    const r=await fetch(`/api/startupkeep?id=${encodeURIComponent(x.id)}&keep=${keep?1:0}&name=${encodeURIComponent(x.name)}`,{cache:'no-store'}).then(r=>r.json()).catch(()=>({ok:false}));
+    const r=await fetch(`/api/startupkeep?id=${encodeURIComponent(x.id)}&keep=${keep?1:0}&name=${encodeURIComponent(x.name)}`,{cache:'no-store',headers:HDR}).then(r=>r.json()).catch(()=>({ok:false}));
     if(r.ok){x.keep=keep;S.st.active=arr(S.st.items).filter(y=>y.enabled&&!y.kind&&!y.keep).length;renderStartup();refreshAll()}else{cb.checked=!keep;cb.disabled=false}});
   b.querySelectorAll('button[data-re]').forEach(bt=>bt.onclick=e=>run('startupset',{Id:it[+bt.dataset.re].id},e.currentTarget));
   const u=$('#stUndo');if(u){u.style.display=S.st.mine?'':'none';u.textContent=t('st_undo',S.st.mine)}

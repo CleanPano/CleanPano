@@ -29,10 +29,13 @@ using System.Windows.Forms;
 static class AppInfo {
     public const string Name = "CleanPano";               // nome do programa (pastas, janela, bandeja)
     public const string Description = "CleanPano - PC Cleaner";
-    public const string Version = "1.15.1.0";
+    public const string Version = "1.16.0.0";
     public const string Engine = "CleanPano.ps1";          // motor (servidor local em PowerShell)
     public const int Port = 8765;                         // porta local do motor
     public const bool Admin = true;                       // motor roda como administrador
+    // Edição Store (MSIX): o pacote traz AppxManifest.xml ao lado do exe e guarda os dados no AppData do app
+    public static bool Store { get { return File.Exists(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "AppxManifest.xml")); } }
+    public static string DataDir { get { return Store ? Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), Name + "\\data") : Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), Name); } }
 }
 
 static class Program {
@@ -52,9 +55,15 @@ static class Program {
     internal static string Get(string path) {
         try {
             var rq = (HttpWebRequest)WebRequest.Create(Url + path.TrimStart(new char[] { '/' }));
+            rq.Headers.Add("X-CleanPano", "1");
             rq.Timeout = 2500; rq.Proxy = null;
             using (var rs = rq.GetResponse()) using (var sr = new StreamReader(rs.GetResponseStream())) return sr.ReadToEnd();
         } catch { return null; }
+    }
+
+    // S mode: HKLM\SYSTEM\CurrentControlSet\Control\CI\Policy\SkuPolicyRequired = 1 (documentado pela Microsoft)
+    static bool SMode() {
+        try { using (var k = Microsoft.Win32.Registry.LocalMachine.OpenSubKey(@"SYSTEM\CurrentControlSet\Control\CI\Policy")) { return k != null && Convert.ToInt32(k.GetValue("SkuPolicyRequired", 0)) == 1; } } catch { return false; }
     }
 
     static bool StartServer(bool boot = false) {
@@ -64,7 +73,7 @@ static class Program {
         try { Process.Start(psi); } catch { return false; }
         if (boot) return true;
         for (int i = 0; i < 60; i++) { Thread.Sleep(500); if (Up()) return true; }
-        MessageBox.Show("O " + AppInfo.Name + " não conseguiu iniciar.\n" + AppInfo.Name + " could not start.\n\n" + Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), AppInfo.Name + "\\logs\\server_error.txt"), AppInfo.Name, MessageBoxButtons.OK, MessageBoxIcon.Error);
+        MessageBox.Show("O " + AppInfo.Name + " não conseguiu iniciar.\n" + AppInfo.Name + " could not start.\n\n" + Path.Combine(AppInfo.DataDir, "logs\\server_error.txt"), AppInfo.Name, MessageBoxButtons.OK, MessageBoxIcon.Error);
         return false;
     }
 
@@ -173,6 +182,14 @@ static class Program {
 
     static void Run(string[] args) {
         L("Iniciando launcher " + string.Join(" ", args));
+        // Windows em modo S bloqueia o PowerShell, que é o motor do CleanPano: avisar em vez de falhar sem explicação
+        if (SMode()) {
+            L("Windows em modo S: CleanPano não pode rodar");
+            MessageBox.Show("O CleanPano não funciona no Windows em modo S, porque precisa do PowerShell.\n"
+                + "CleanPano does not work on Windows in S mode, because it needs PowerShell.\n"
+                + "CleanPano no funciona en Windows en modo S, porque necesita PowerShell.", AppInfo.Name, MessageBoxButtons.OK, MessageBoxIcon.Information);
+            return;
+        }
         if (Array.Exists(args, a => a.Equals("/window", StringComparison.OrdinalIgnoreCase))) { OpenWindow(); return; }
         // /boot: chamado pela tarefa agendada no logon; só liga o motor em modo automático (ele abre a bandeja depois)
         if (Array.Exists(args, a => a.Equals("/boot", StringComparison.OrdinalIgnoreCase))) { if (!Up()) StartServer(true); return; }

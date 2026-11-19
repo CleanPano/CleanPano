@@ -26,6 +26,32 @@ $ProgressPreference = 'SilentlyContinue'
 [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
 try { [Console]::OutputEncoding = [Text.Encoding]::UTF8 } catch {}
 function Log($m) { $l = "$(Get-Date -f 'HH:mm:ss')  $m"; $sync.Q.Enqueue($l); Add-Content -Path $sync.LogFile -Value $l -Encoding UTF8 }
+# Pasta de download protegida: só Administradores e SYSTEM têm acesso, dono = Administradores, nome aleatório.
+# Programas comuns (sem administrador) não conseguem criar, trocar nem plantar arquivos nela.
+function New-SafeDir {
+    $d = Join-Path $env:ProgramData ('CleanPano\dl-' + [guid]::NewGuid().ToString('N'))
+    $sec = New-Object Security.AccessControl.DirectorySecurity
+    $sec.SetAccessRuleProtection($true, $false)
+    foreach ($sid in 'S-1-5-32-544', 'S-1-5-18') {
+        $sec.AddAccessRule((New-Object Security.AccessControl.FileSystemAccessRule((New-Object Security.Principal.SecurityIdentifier $sid), 'FullControl', 'ContainerInherit,ObjectInherit', 'None', 'Allow')))
+    }
+    try { $sec.SetOwner((New-Object Security.Principal.SecurityIdentifier 'S-1-5-32-544')) } catch {}
+    [void][IO.Directory]::CreateDirectory($d, $sec)
+    $d
+}
+function Clear-SafeDirs { Get-ChildItem -LiteralPath (Join-Path $env:ProgramData 'CleanPano') -Directory -Filter 'dl-*' -ErrorAction SilentlyContinue | ForEach-Object { Remove-Item -LiteralPath $_.FullName -Recurse -Force -ErrorAction SilentlyContinue } }
+# Só aceita download por HTTPS e de domínios esperados
+function Test-SafeUrl([string]$u, [string[]]$hosts) {
+    try { $x = [uri]$u } catch { return $false }
+    if ($x.Scheme -ne 'https') { return $false }
+    foreach ($h in $hosts) { if ($x.Host -eq $h -or $x.Host.EndsWith('.' + $h)) { return $true } }
+    $false
+}
+# Assinatura digital válida e do fabricante esperado
+function Test-Signed([string]$f, [string]$org) {
+    $s = Get-AuthenticodeSignature -LiteralPath $f -ErrorAction SilentlyContinue
+    [bool]($s -and $s.Status -eq 'Valid' -and $s.SignerCertificate -and $s.SignerCertificate.Subject -match ('O=' + [regex]::Escape($org)))
+}
 function Fmt($b) { $b = [double]$b; if ($b -ge 1GB) { '{0:N2} GB' -f ($b / 1GB) } else { '{0:N1} MB' -f ($b / 1MB) } }
 function Get-Targets {
     $l = $env:LOCALAPPDATA
@@ -290,9 +316,8 @@ function Get-HwQueries($ids) {
     @($q | Select-Object -First 3)
 }
 function Invoke-WebDrivers {
-    $tmp = Join-Path $env:TEMP 'CleanPano\catalog'
-    Remove-Item $tmp -Recurse -Force -ErrorAction SilentlyContinue
-    New-Item -ItemType Directory -Path $tmp -Force | Out-Null
+    Clear-SafeDirs
+    $tmp = New-SafeDir
     $osTag = $(if ([int](Get-CimInstance Win32_OperatingSystem).BuildNumber -ge 22000) { 'Windows 11' } else { 'Windows 10' })
     $drv = @{}
     Get-CimInstance Win32_PnPSignedDriver | Where-Object { $_.DeviceID } | ForEach-Object { $drv[$_.DeviceID] = $_ }
@@ -330,6 +355,8 @@ function Invoke-WebDrivers {
             Log ("  {0}: {1} -> {2}" -f $p.Name, $(if ($p.Cur) { $p.Cur } else { 'sem driver' }), $p.New)
             $url = Get-CatalogUrl $p.Guid
             if (-not $url) { Log '    sem arquivo .cab para baixar, pulado'; continue }
+            $url = $url -replace '^http://', 'https://'
+            if (-not (Test-SafeUrl $url @('windowsupdate.com', 'microsoft.com'))) { Log '    endereço de download inesperado, pulado'; continue }
             $cab = Join-Path $tmp "$($p.Guid).cab"; $ex = Join-Path $tmp $p.Guid
             (New-CatClient).DownloadFile($url, $cab)
             New-Item -ItemType Directory -Path $ex -Force | Out-Null
@@ -799,7 +826,7 @@ foreach ($p in $plan) {
                 }
                 foreach ($g in @($gpus | Where-Object { $_.Name -match 'NVIDIA' -and $_.Name -match 'GeForce|RTX|GTX' -and $_.Name -notmatch 'Quadro|RTX A\d|Tesla' })) {
                     try {
-                        $cur = $null
+                        $cur = $null; $dir = $null
                         $p = ([string]$g.DriverVersion).Split('.')
                         if ($p.Count -ge 4) { $dg = $p[2] + $p[3]; $dg = $dg.Substring([math]::Max(0, $dg.Length - 5)); $cur = $dg.Substring(0, 3) + '.' + $dg.Substring(3) }
                         $api = 'https://gfwsl.geforce.com/services_toolkit/services/com/nvidia/services/AjaxDriverService.php?func=DriverManualLookup&psid=120&pfid=929&osID=57&languageCode=1033&isWHQL=1&dch=1&sort1=0&numberOfResults=1'
@@ -807,27 +834,32 @@ foreach ($p in $plan) {
                         $new = [string]$di.Version; $url = [string]$di.DownloadURL
                         if ($cur -and ([version]$new -le [version]$cur)) { Log "NVIDIA: já na versão mais nova ($cur)"; $res += "NVIDIA já na versão mais nova ($cur)"; continue }
                         if (Get-CimInstance Win32_Battery) { $url = $url -replace '-desktop-', '-notebook-' }
-                        $dir = Join-Path $env:TEMP 'CleanPano'; New-Item -ItemType Directory -Path $dir -Force | Out-Null
+                        $url = $url -replace '^http://', 'https://'
+                        if (-not (Test-SafeUrl $url @('nvidia.com'))) { throw 'endereço de download inesperado' }
+                        Clear-SafeDirs
+                        $dir = New-SafeDir
                         $file = Join-Path $dir "nvidia-$new.exe"
                         Log "NVIDIA: baixando driver $new (~800 MB)..."
                         try { Start-BitsTransfer -Source $url -Destination $file -ErrorAction Stop } catch { (New-Object Net.WebClient).DownloadFile($url, $file) }
                         if (-not (Test-Path $file) -or (Get-Item $file).Length -lt 100MB) { throw 'download incompleto do driver' }
+                        if (-not (Test-Signed $file 'NVIDIA Corporation')) { Remove-Item -LiteralPath $dir -Recurse -Force; throw 'assinatura digital da NVIDIA inválida, driver não instalado' }
                         $seven = Join-Path $dir '7zr.exe'
-                        if (-not (Test-Path $seven)) { Log 'NVIDIA: baixando extrator 7-Zip (oficial)...'; (New-Object Net.WebClient).DownloadFile('https://www.7-zip.org/a/7zr.exe', $seven) }
+                        Log 'NVIDIA: baixando extrator 7-Zip (oficial)...'; (New-Object Net.WebClient).DownloadFile('https://www.7-zip.org/a/7zr.exe', $seven)
                         $ex = Join-Path $dir "nvidia-$new"
                         Remove-Item $ex -Recurse -Force -ErrorAction SilentlyContinue
                         Log 'NVIDIA: extraindo instalador...'
                         $z = Start-Process -FilePath $seven -ArgumentList 'x', "`"$file`"", "-o`"$ex`"", '-y' -Wait -PassThru -WindowStyle Hidden
                         $setup = Join-Path $ex 'setup.exe'
-                        if (-not (Test-Path $setup)) { throw "não foi possível extrair o instalador (7-Zip código $($z.ExitCode))" }
+                        if (-not (Test-Path $setup)) { Remove-Item -LiteralPath $dir -Recurse -Force; throw "não foi possível extrair o instalador (7-Zip código $($z.ExitCode))" }
+                        if (-not (Test-Signed $setup 'NVIDIA Corporation')) { Remove-Item -LiteralPath $dir -Recurse -Force; throw 'assinatura digital do instalador NVIDIA inválida, não instalado' }
                         Log "NVIDIA: instalando $new (a tela pode piscar)..."
                         $pr = Start-Process -FilePath $setup -ArgumentList '-s', '-noreboot', '-noeula' -PassThru -WindowStyle Hidden
                         if (-not $pr.WaitForExit(1800000)) { try { $pr.Kill() } catch {}; throw 'instalação passou de 30 minutos e foi cancelada' }
-                        Remove-Item $file, $ex -Recurse -Force -ErrorAction SilentlyContinue
+                        Remove-Item -LiteralPath $dir -Recurse -Force -ErrorAction SilentlyContinue
                         Remove-Item 'C:\NVIDIA\DisplayDriver' -Recurse -Force -ErrorAction SilentlyContinue
                         if ($pr.ExitCode -in 0, 1) { Log "NVIDIA: $cur → $new instalado"; $res += "NVIDIA $cur → $new instalado" }
                         else { Log "NVIDIA: falha na instalação (código $($pr.ExitCode))"; $res += "NVIDIA: falha na instalação (código $($pr.ExitCode))"; $gerr = $true }
-                    } catch { Log "NVIDIA: erro - $($_.Exception.Message)"; $res += 'NVIDIA: falhou (veja Atividade)'; $gerr = $true }
+                    } catch { if ($dir) { Remove-Item -LiteralPath $dir -Recurse -Force -ErrorAction SilentlyContinue }; Log "NVIDIA: erro - $($_.Exception.Message)"; $res += 'NVIDIA: falhou (veja Atividade)'; $gerr = $true }
                 }
                 foreach ($g in @($gpus | Where-Object { $_.Name -match 'AMD|Radeon|Intel' })) {
                     $res += "$($g.Name): atualizado na etapa de drivers pela web"
@@ -914,7 +946,9 @@ function Register-Boot {
         }
         $trg = New-ScheduledTaskTrigger -AtLogOn -User $me
         $trg.Delay = 'PT1M'
-        $pri = New-ScheduledTaskPrincipal -UserId $me -LogonType Interactive -RunLevel Highest
+        # Edição Store: o atalho do pacote fica numa pasta que o usuário pode alterar, então a tarefa roda SEM privilégio
+        # e o próprio CleanPano pede elevação (UAC). Instalador comum: Program Files, só administrador grava -> pode rodar elevada.
+        $pri = New-ScheduledTaskPrincipal -UserId $me -LogonType Interactive -RunLevel $(if ($IsStore) { 'Limited' } else { 'Highest' })
         $set = New-ScheduledTaskSettingsSet -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -StartWhenAvailable -ExecutionTimeLimit (New-TimeSpan -Hours 3)
         Register-ScheduledTask -TaskName 'CleanPano' -Description 'CleanPano: otimização automática ao entrar no Windows' -Action $act -Trigger $trg -Principal $pri -Settings $set -Force -ErrorAction Stop | Out-Null
         Log 'Inicialização automática ligada (1 min após entrar no Windows)'
@@ -1033,6 +1067,33 @@ function Get-Info {
     }
 }
 
+# Segurança: cada tarefa só aceita as variáveis e valores que a própria tela do app envia.
+# Qualquer outro nome ou valor é descartado (outros programas do PC não conseguem mexer no motor administrador).
+$TaskVars = @{
+    optimize   = @{ DoRestore = 'bool'; DoDism = 'bool'; DoDrivers = 'bool'; DoGpu = 'bool'; DoWinget = 'bool'; DoNet = 'bool'; CloseBrowsers = 'bool'; UseWU = 'bool' }
+    clean      = @{ Selected = 'names'; CloseBrowsers = 'bool' }
+    setdns     = @{ Mode = @('auto', 'cf', 'g') }
+    wusearch   = @{ Type = @('Driver', 'Software') }
+    wuinstall  = @{ Type = @('Driver', 'Software') }
+    winget     = @{ All = 'bool' }
+    startupset = @{ Id = 'id' }
+}
+function Get-TaskVars([string]$task, $raw) {
+    $out = @{}
+    if (-not $Tasks.ContainsKey($task)) { return $null }
+    $spec = $TaskVars[$task]
+    if (-not $raw -or -not $spec) { return $out }
+    foreach ($p in $raw.PSObject.Properties) {
+        if (-not $spec.ContainsKey($p.Name)) { continue }
+        $k = $spec[$p.Name]; $v = $p.Value
+        if ($k -is [array]) { if ($k -contains [string]$v) { $out[$p.Name] = [string]$v } }
+        elseif ($k -eq 'bool') { $out[$p.Name] = [bool]$v }
+        elseif ($k -eq 'id') { $s = [string]$v; if ($s.Length -le 400) { $out[$p.Name] = $s } }
+        elseif ($k -eq 'names') { $out[$p.Name] = @(@($v) | ForEach-Object { [string]$_ } | Where-Object { $_.Length -le 100 } | Select-Object -First 50) }
+    }
+    $out
+}
+
 function Start-Work([string]$task, [hashtable]$vars) {
     if ($script:Job -or -not $Tasks.ContainsKey($task)) { return $false }
     $sync.Result = $null
@@ -1120,9 +1181,8 @@ function Handle($ctx) {
         }
         '/api/run' {
             $body = (New-Object IO.StreamReader($req.InputStream, [Text.Encoding]::UTF8)).ReadToEnd() | ConvertFrom-Json
-            $vars = @{}
-            if ($body.vars) { foreach ($p in $body.vars.PSObject.Properties) { $vars[$p.Name] = $p.Value } }
-            Send-Json $ctx @{ ok = (Start-Work ([string]$body.task) $vars) }
+            $vars = Get-TaskVars ([string]$body.task) $body.vars
+            Send-Json $ctx @{ ok = ($null -ne $vars -and (Start-Work ([string]$body.task) $vars)) }
         }
         '/api/startupkeep' {
             # marcar/desmarcar um programa: desmarcado = mantido (o botão de desativar pula ele)
@@ -1153,7 +1213,7 @@ function Handle($ctx) {
                 $b = (New-Object IO.StreamReader($req.InputStream, [Text.Encoding]::UTF8)).ReadToEnd() | ConvertFrom-Json
                 $cfg = Get-Settings
                 if ($b.opts) { $cfg.opts = $b.opts }
-                if ($b.lang) { $cfg.lang = [string]$b.lang }
+                if ($b.lang -and ([string]$b.lang) -match '^[a-z]{2}$') { $cfg.lang = [string]$b.lang }
                 Save-Settings $cfg
                 if ($null -ne $b.autostart) {
                     if ($b.autostart) { Register-Boot }

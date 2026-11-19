@@ -1,4 +1,4 @@
-CleanPano 1.16.0 - PC Cleaner
+CleanPano 1.16.1 - PC Cleaner
 Copyright (C) 2026 CleanPano
 
 Software livre sob a GNU General Public License v3.0 (GPLv3) / Free software under the GNU General Public License v3.0 (GPLv3).

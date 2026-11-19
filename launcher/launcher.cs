@@ -29,7 +29,7 @@ using System.Windows.Forms;
 static class AppInfo {
     public const string Name = "CleanPano";               // nome do programa (pastas, janela, bandeja)
     public const string Description = "CleanPano - PC Cleaner";
-    public const string Version = "1.16.0.0";
+    public const string Version = "1.16.1.0";
     public const string Engine = "CleanPano.ps1";          // motor (servidor local em PowerShell)
     public const int Port = 8765;                         // porta local do motor
     public const bool Admin = true;                       // motor roda como administrador
@@ -318,7 +318,8 @@ class Win : Form {
             await c.AddScriptToExecuteOnDocumentCreatedAsync("window.cpHost={max:" + (maxed ? "true" : "false") + ",op:" + op + "};");
             c.WebMessageReceived += (s, e) => { string m = null; try { m = e.TryGetWebMessageAsString(); } catch { } Msg(m); };
             c.WindowCloseRequested += (s, e) => Close();
-            c.NewWindowRequested += (s, e) => { e.Handled = true; try { Process.Start(e.Uri); } catch { } };
+            // links externos: só https abre no navegador padrão (nada de file:, atalhos de protocolo etc.)
+            c.NewWindowRequested += (s, e) => { e.Handled = true; Uri u; if (Uri.TryCreate(e.Uri, UriKind.Absolute, out u) && u.Scheme == Uri.UriSchemeHttps) { try { Process.Start(u.AbsoluteUri); } catch { } } };
             c.ProcessFailed += (s, e) => Program.L("WebView2 processo falhou: " + e.ProcessFailedKind);
             c.Navigate(Program.Url);
             Program.L("Janela WebView2 pronta");

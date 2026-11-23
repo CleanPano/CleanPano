@@ -1,4 +1,4 @@
-Unicode true
+﻿Unicode true
 Target amd64-unicode
 ; Instalador do CleanPano (NSIS). Gerar com build\build.ps1 (Windows) ou build/build.sh (Linux).
 ; Versão: mude VER aqui e AppInfo.Version em launcher\launcher.cs.

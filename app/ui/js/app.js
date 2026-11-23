@@ -58,6 +58,13 @@ async function run(task,vars={},el){
   return r.ok;
 }
 async function confirmRun(task,q,m,vars,el){if(await ask(t(q),t(m)))run(task,vars,el)}
+// Desativar inicialização: nunca roda sem a lista carregada; a confirmação mostra exatamente quais programas serão desativados
+async function startOff(el){
+  if(!S.st){if(!S.busy)run('startup');await ask(t('ti_startoff'),t('st_loading'),t('ok'),'');return}
+  const go=arr(S.st.items).filter(x=>x.enabled&&!x.kind&&!x.keep).map(x=>'• '+x.name);
+  if(!go.length){await ask(t('ti_startoff'),t('so_done',0),t('ok'),'');return}
+  if(await ask(t('q_startoff'),t('m_startoff')+'\n\n'+go.join('\n')))run('startupoff',{},el);
+}
 
 /* ================= idioma ================= */
 function buildLang(){
@@ -125,9 +132,9 @@ function PG(){
   kpis:[['kFree','k_free'],['kRam','k_ram'],['kCan','k_junk'],['kLast','k_last',1]]},
  clean:{nav:t('n_clean'),title:()=>t('n_clean'),sub:()=>t('s_clean'),primary:[t('b_analyze'),'search',el=>run('analyze',{},el)],
   kpis:[['kFree','k_free'],['kCan','k_can'],['kFreed','k_freed'],['kScan','k_scan']]},
- perf:{nav:t('n_perf'),title:()=>t('n_perf'),sub:()=>t('s_perf'),primary:[t('ti_startoff'),'zap',el=>confirmRun('startupoff','q_startoff','m_startoff',{},el)],st:true,
+ perf:{nav:t('n_perf'),title:()=>t('n_perf'),sub:()=>t('s_perf'),primary:[t('ti_startoff'),'zap',el=>startOff(el)],st:true,
   kpis:[['kRam','k_ram'],['kStart','k_start'],['kUp','k_up'],(S.info&&S.info.laptop)?['kPower','k_power',1]:['kRepair','k_repair',1]],
-  tiles:[T2('startoff','zap',el=>confirmRun('startupoff','q_startoff','m_startoff',{},el)),T2('repair','wrench',el=>confirmRun('repair','q_repair','m_repair',{},el))].concat((S.info&&S.info.laptop)?[T2('high','zap',()=>power('high')),T2('bal','scale',()=>power('balanced'))]:[])},
+  tiles:[T2('startoff','zap',el=>startOff(el)),T2('repair','wrench',el=>confirmRun('repair','q_repair','m_repair',{},el))].concat((S.info&&S.info.laptop)?[T2('high','zap',()=>power('high')),T2('bal','scale',()=>power('balanced'))]:[])},
  net:{nav:t('n_net'),title:()=>t('t_net'),sub:()=>t('s_net'),primary:[t('b_speed'),'download',el=>run('speed',{},el)],
   net:true,
   kpis:[['kIp','k_ip',1],['kPing','k_ping'],['kSpeed','k_speed'],['kDns','k_dns',1]],
@@ -417,6 +424,7 @@ async function poll(){
     if(p.steps&&arr(p.steps).length&&S.optRunning)applySteps(arr(p.steps));
     if(!(Date.now()-S.runAt<900&&!p.busy))setBusy(!!p.busy,p.key||'');
     for(const d of arr(p.done)){if(d.task!=='optimize')fx('celebrate');Promise.resolve().then(()=>DONE[d.task]&&DONE[d.task](d.result)).catch(console.error)}
+    if(!p.busy&&!S.busy&&Date.now()-(S.autoLoad||0)>3000){const pg=(!S.st||!S.hw)?(PG()[S.page]||{}):{};if(pg.st&&!S.st){S.autoLoad=Date.now();run('startup')}else if(pg.hw&&!S.hw){S.autoLoad=Date.now();run('hardware')}}
   }catch(e){if(++off>4){$('#badge').className='badge off';$('#btxt').textContent=t('disconnected')}}
   setTimeout(poll,400);
 }

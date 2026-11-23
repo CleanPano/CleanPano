@@ -29,7 +29,7 @@ using System.Windows.Forms;
 static class AppInfo {
     public const string Name = "CleanPano";               // nome do programa (pastas, janela, bandeja)
     public const string Description = "CleanPano - PC Cleaner";
-    public const string Version = "1.16.1.0";
+    public const string Version = "1.16.2.0";
     public const string Engine = "CleanPano.ps1";          // motor (servidor local em PowerShell)
     public const int Port = 8765;                         // porta local do motor
     public const bool Admin = true;                       // motor roda como administrador

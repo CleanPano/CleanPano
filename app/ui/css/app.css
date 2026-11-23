@@ -272,3 +272,4 @@ html.dark .tile.on .ic{color:#000}
 :where(html.dark) .hf.warn{background:rgba(235,185,49,.14);color:#e8b931}
 :where(html.dark) .hf.info{background:rgba(120,160,255,.14);color:#8fb0ff}
 .pp-b{margin-right:8px;text-decoration:none}
+#mP{white-space:pre-line;max-height:50vh;overflow:auto}

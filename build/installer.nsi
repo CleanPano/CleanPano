@@ -1,11 +1,11 @@
-﻿Unicode true
+Unicode true
 Target amd64-unicode
 ; Instalador do CleanPano (NSIS). Gerar com build\build.ps1 (Windows) ou build/build.sh (Linux).
 ; Versão: mude VER aqui e AppInfo.Version em launcher\launcher.cs.
 !include "MUI2.nsh"
 !include "x64.nsh"
 !define APP "CleanPano"
-!define VER "1.16.1"
+!define VER "1.16.2"
 !define PUB "CleanPano"
 !define UNKEY "Software\Microsoft\Windows\CurrentVersion\Uninstall\CleanPano"
 Name "${APP}"
@@ -19,7 +19,7 @@ ManifestDPIAware true
 ManifestSupportedOS all
 SetFont "Segoe UI" 9
 XPStyle on
-VIProductVersion "1.16.1.0"
+VIProductVersion "1.16.2.0"
 VIAddVersionKey /LANG=0 "ProductName" "${APP}"
 VIAddVersionKey /LANG=0 "FileDescription" "${APP} Setup"
 VIAddVersionKey /LANG=0 "FileVersion" "${VER}"
